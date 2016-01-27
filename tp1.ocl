@@ -1,0 +1,100 @@
+-- INF3143 - Modélisation et spécification formelles de logiciels - Hiver 2016
+-- Tp1: OCL
+--
+-- Travail remis à:
+--  Alexandre Terrasa
+--
+-- Auteurs:
+-- 	Nicolas Lamoureux - LAMN19109003
+--  Marc-Antoine Sauvé - SAUM13119008
+
+
+context Personnage
+
+  -- Le nom d’un personnage doit faire entre 3 et 12 caractères et ne doit pas correspondre aux chaînes GOD, TEST ou ADMIN (minuscules ou majuscules).
+  -- Un personnage peut avoir entre 0 et 100 points de vie.
+  -- Un personnage possède une force strictement supérieure à 0.
+  -- Un personnage a forcément un métier.
+  -- Deux personnages ne peuvent avoir le même nom.
+  -- Un personnage ne peut pas être dans deux équipes en même temps.
+  -- estMort(): Boolean permet de vérifier si un personnage est mot:
+  -- Retourne vrai si la vie du personnage est égale à 0.
+  -- blesser(Integer dommages) permet de blesser un personnage:
+  -- La méthode prend en paramètre un nombre de points de dommages à retirer (toujours positif).
+  -- Elle soustrait les points de dommages à la valeur de vie du personnage.
+  -- attaque(Personnage personnage) permet à un personnage d’attaquer un autre personnage:
+  -- Un personnage ne peut attaquer un autre personnage que s’il dispose d’une arme.
+  -- Un personnage ne peut s’attaquer lui-même.
+  -- Un personnage ne peut attaquer un membre de son équipe.
+  -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
+  -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
+
+
+context Arme
+
+  -- Une arme peut avoir entre 0 et 3 enchantements.
+  -- Une arme ne peut avoir d’enchantements que si elle est portée par un personnage.
+  -- Les points de dommages d’une arme sont supérieurs ou égal à 0.
+  -- La méthode getDommages() calcule les dommages infligés par l’arme avec ses enchantements.
+  -- dommage + les bonus des enchantements appliqués à sur l’arme
+
+
+context Enchantement
+
+  -- getBonus(): Integer retourne le bonus de dommage ajouté par l’enchantement.
+  -- Un enchantement est toujours rattaché à une arme et cette arme doit être équipée par un personnage. Sinon l’enchantement ne devrait pas exister.
+
+
+context Équipe
+
+  -- Une équipe a un nom possédant entre 6 et 12 caractères
+  -- Une équipe à doit toujours avoir un chef.
+  -- Le chef d’une équipe doit être inscrit dans cette équipe.
+  -- Une équipe comprend entre 3 et 8 personnages.
+  -- Une équipe doit comprendre au moins un personnage portant une arme.
+  -- Une équipe doit avoir au moins un prêtre, un guerrier et un mage.
+  -- estMorte(): Boolean
+  -- Retourne vrai si et seulement si tous ses membres sont morts.
+
+
+context Métier
+
+  -- Il existe 3 types de métiers:
+  -- Prêtre
+  -- Mage
+  -- Guerrier
+  -- Chacune des sous-classes de métier est un singleton.
+
+
+context Prêtre
+
+  -- Les prêtres ne peuvent pas porter d’armes, ils ne font que soigner.
+  -- soigner(Personnage prêtre, Personnage cible, Integer mana) permet au prêtre de transformer des points de mana en points de vie pour soigner un autre personnage.
+  -- Un prêtre ne peut pas se soigner lui même.
+  -- Un prêtre ne peut soigner que des membres de son équipe.
+  -- Un prêtre ne peut pas soigner un personnage déjà mort.
+  -- Un prêtre ne peut pas soigner un personnage au delà de 100 points de vie.
+  -- Le nombre de points de mana transformés doit être strictement supérieur à 0.
+  -- Le nombre de points de mana transformés ne peut pas être supérieur au nombre de points de mana du prêtre.
+  -- Grâce au soin, la cible gagne autant de points de vie que de points de mana dépensés par le prêtre.
+  -- Le prêtre perd autant de points de mana que de dépensés pour le soin.
+
+
+context Mage
+
+  -- Les mages ne peuvent pas porter d’armes à deux mains.
+  -- lancerSort(Personnage mage, Personnage cible, Integer mana) permet au mage d'utiliser ses points de mana pour les transformer en dommages infligés à un adversaire.
+  -- mana doit être strictement suppérieur à 0.
+  -- mana doit être inférieur ou égal à la quantité de mana dont dispose le mage.
+  -- Lancer un sort diminue la mana du mage du nombre de points de mana utilisés.
+  -- Lancer un sort diminue la vie de la cible du nombre de points de mana utilisés.
+  -- Un mage ne peut pas se lancer un sort à lui même.
+  -- Un mage ne peut pas lancer un sort à un personnage membre de son équipe.
+
+
+context Guerrier
+
+  -- berserk(Personnage guerrier, Integer mana) permet au guerrier de rentrer en mode berserk et d'échanger des points de mana contre des points de force.
+  -- Le nombre de points de mana sacrifiés par le guerrier doit être structement suppérieur à 0.
+  -- Le nombre de points de mana sacrifiés par le guerrier doit être inférieur ou égal à la quantité de mana dont il dispose.
+  -- La force du guerrier est augmenté du nombre de points de mana dépensés.
