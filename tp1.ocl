@@ -31,7 +31,7 @@ context Personnage
         p1 <> p2 implies p1.nom <> p2.nom)
 
     -- Un personnage ne peut pas être dans deux équipes en même temps.
-    --je suis pas sur de savoir comment le faire
+    inv: Equipe.allInstances()->select(equipe | equipe.personnages->includes(self))->size() <= 1
 
     -- estMort(): Boolean permet de vérifier si un personnage est mort:
 context Personnage::estMort(): Boolean
