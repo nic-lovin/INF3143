@@ -26,24 +26,48 @@ context Personnage
     -- Un personnage a forcément un métier.
     inv: metier <> null
 
-
-    -- Le nom d’un personnage doit faire entre 3 et 12 caractères et ne doit pas correspondre aux chaînes GOD, TEST ou ADMIN (minuscules ou majuscules).
-    -- Un personnage peut avoir entre 0 et 100 points de vie.
-    -- Un personnage possède une force strictement supérieure à 0.
-    -- Un personnage a forcément un métier.
     -- Deux personnages ne peuvent avoir le même nom.
+    inv: Personnage.allInstances()->forAll(p1, p2 |
+        p1 <> p2 implies p1.nom <> p2.nom)
+
     -- Un personnage ne peut pas être dans deux équipes en même temps.
-    -- estMort(): Boolean permet de vérifier si un personnage est mot:
+    --je suis pas sur de savoir comment le faire
+
+    -- estMort(): Boolean permet de vérifier si un personnage est mort:
+context Personnage::estMort(): Boolean
+
     -- Retourne vrai si la vie du personnage est égale à 0.
+    body: vie = 0
+
     -- blesser(Integer dommages) permet de blesser un personnage:
+context Personnage::blesser(d: Integer)
+
     -- La méthode prend en paramètre un nombre de points de dommages à retirer (toujours positif).
+    pre: d > 0
+    
     -- Elle soustrait les points de dommages à la valeur de vie du personnage.
+    post: vie = vie@pre - d
+
     -- attaque(Personnage personnage) permet à un personnage d’attaquer un autre personnage:
+context Personnage::attaque(p: Personnage)
+
     -- Un personnage ne peut attaquer un autre personnage que s’il dispose d’une arme.
+    pre: arme <> null
+
     -- Un personnage ne peut s’attaquer lui-même.
+    pre: p <> self
+    
     -- Un personnage ne peut attaquer un membre de son équipe.
+    pre: equipe.personnages->excludes(p)
+
     -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
     -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
+    post: let dégats = force + if arme <> null then arme.getDommages() else 0 endif
+        if p@pre.vie - dégats > 0 then
+            p.vie = p@pre.vie - dégats
+        else
+            p.vie = 0
+        endif
 
 
 context Arme
