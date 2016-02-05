@@ -90,8 +90,12 @@ context Arme::getDommages(): Integer
 
 context Enchantement
 
-    -- getBonus(): Integer retourne le bonus de dommage ajouté par l’enchantement.
     -- Un enchantement est toujours rattaché à une arme et cette arme doit être équipée par un personnage. Sinon l’enchantement ne devrait pas exister.
+    inv: Arme::allInstances()->select(a | a.enchantements->includes(self))->size() = 1
+
+    -- getBonus(): Integer retourne le bonus de dommage ajouté par l’enchantement.
+context Enchantement::getBonus(): Integer
+    body: bonus
 
 
 context Équipe
