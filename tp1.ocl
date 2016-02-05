@@ -63,11 +63,7 @@ context Personnage::attaque(p: Personnage)
     -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
     -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
     post: let dégats = force + if arme <> null then arme.getDommages() else 0 endif
-        if p@pre.vie - dégats > 0 then
-            p.vie = p@pre.vie - dégats
-        else
-            p.vie = 0
-        endif
+        p.vie = 0.max(p@pre.vie - dégats)
 
 
 context Arme
