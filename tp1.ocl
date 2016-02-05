@@ -62,8 +62,8 @@ context Personnage::attaque(p: Personnage)
 
     -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
     -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
-    post: let dégats = force + if arme <> null then arme.getDommages() else 0 endif
-        p.vie = 0.max(p@pre.vie - dégats)
+    post: let degats = force + if arme <> null then arme.getDommages() else 0 endif
+        p.vie = 0.max(p@pre.vie - degats)
 
 
 context Arme
@@ -94,19 +94,36 @@ context Enchantement::getBonus(): Integer
     body: bonus
 
 
-context Équipe
+context Equipe
 
     -- Une équipe a un nom possédant entre 6 et 12 caractères
+    inv: nom.size() >= 6 and nom.size() <= 12
+
     -- Une équipe à doit toujours avoir un chef.
+    inv: chef <> null
+
     -- Le chef d’une équipe doit être inscrit dans cette équipe.
+    inv: personnages->includes(chef)
+
     -- Une équipe comprend entre 3 et 8 personnages.
+    inv: personnages->size() >= 3 and personnages->size() <= 8
+
     -- Une équipe doit comprendre au moins un personnage portant une arme.
+    inv: personnages->select(arme <> null)->notEmpty()
+
     -- Une équipe doit avoir au moins un prêtre, un guerrier et un mage.
+    inv: personnages->select(p | p.oclIsTypeOf(Pretre))->notEmpty()
+    inv: personnages->select(p | p.oclIsTypeOf(Guerrier))->notEmpty()
+    inv: personnages->select(p | p.oclIsTypeOf(Mage))->notEmpty()
+
     -- estMorte(): Boolean
+context Equipe::estMorte(): Boolean
+
     -- Retourne vrai si et seulement si tous ses membres sont morts.
+    body: personnages->select(vie > 0)->isEmpty()
 
 
-context Métier
+context Metier
 
     -- Il existe 3 types de métiers:
     -- Prêtre
