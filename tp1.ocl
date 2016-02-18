@@ -133,7 +133,7 @@ context Metier
 
 
 context Pretre
-   inv: self.personnage.arme = null
+   inv: Personnage.allInstances()->select(p | p.metier.oclIsTypeOf(Pretre))->select(p | p.arme <> null)->isEmpty()
 
 context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
     -- Un prêtre doit être en vie pour pouvoir soigner.
