@@ -137,7 +137,7 @@ context Metier
 
 context Pretre
     -- Les prêtres ne peuvent pas porter d’armes, ils ne font que soigner.
-   inv: Personnage.allInstances()->select(p | p.metier.oclIsTypeOf(Pretre) and p.arme <> null)->
+   inv: Personnage.allInstances()->select(p | p.metier.oclIsTypeOf(Pretre) and p.arme <> null)->isEmpty()
 
 context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
     -- Pour pouvoir soigner, le soigneur doit être un prêtre.
