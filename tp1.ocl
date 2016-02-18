@@ -37,39 +37,39 @@ context Personnage
 context Personnage::estMort(): Boolean
 
     -- Retourne vrai si la vie du personnage est égale à 0.
-    body: vie = 0
+    post: result = (vie = 0)
 
     -- blesser(Integer dommages) permet de blesser un personnage:
-context Personnage::blesser(d: Integer)
+context Personnage::blesser(dommages: Integer)
 
     -- La méthode prend en paramètre un nombre de points de dommages à retirer (toujours positif).
-    pre: d > 0
+    pre: dommages > 0
     
     -- Elle soustrait les points de dommages à la valeur de vie du personnage.
-    post: vie = vie@pre - d
+    post: vie = vie@pre - dommages
 
-    -- attaque(Personnage personnage) permet à un personnage d’attaquer un autre personnage:
-context Personnage::attaque(p: Personnage)
+    -- attaquer(Personnage cible) permet à un personnage d’attaquer un autre personnage:
+context Personnage::attaquer(cible: Personnage)
 
     -- Un personnage ne peut attaquer un autre personnage que s’il dispose d’une arme.
     pre: arme <> null
 
     -- Un personnage ne peut s’attaquer lui-même.
-    pre: p <> self
+    pre: cible <> self
     
     -- Un personnage ne peut attaquer un membre de son équipe.
-    pre: equipe.personnages->excludes(p)
+    pre: equipe.personnages->excludes(cible)
 
     -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
     -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
-    post: let degats = force + if arme <> null then arme.getDommages() else 0 endif
-        p.vie = 0.max(p@pre.vie - degats)
+    post: let degats = force + if arme <> null then arme.dommages + arme.enchantements->collect(bonus)->sum() else 0 endif in
+        cible.vie = 0.max(cible@pre.vie - degats)
 
 
 context Arme
 
     -- Une arme peut avoir entre 0 et 3 enchantements.
-    inv: enchantements->size() >= 0 and enchantement->size() <= 3
+    inv: enchantements->size() >= 0 and enchantements->size() <= 3
 
     -- Une arme ne peut avoir d’enchantements que si elle est portée par un personnage.
     inv: Personnage.allInstances()->select(p | p.arme = self)->size() = 0 implies enchantements->size() = 0
@@ -81,17 +81,17 @@ context Arme
 context Arme::getDommages(): Integer
     
     -- dommage + les bonus des enchantements appliqués à sur l’arme
-    body: dommages + enchantements->collect(bonus)->sum()
+    post: result = dommages + enchantements->collect(bonus)->sum()
 
 
 context Enchantement
 
     -- Un enchantement est toujours rattaché à une arme et cette arme doit être équipée par un personnage. Sinon l’enchantement ne devrait pas exister.
-    inv: Arme::allInstances()->select(a | a.enchantements->includes(self))->size() = 1
+    inv: Arme.allInstances()->select(a | a.enchantements->includes(self))->size() = 1
 
     -- getBonus(): Integer retourne le bonus de dommage ajouté par l’enchantement.
 context Enchantement::getBonus(): Integer
-    body: bonus
+    post: result = bonus
 
 
 context Equipe
@@ -112,15 +112,15 @@ context Equipe
     inv: personnages->select(arme <> null)->notEmpty()
 
     -- Une équipe doit avoir au moins un prêtre, un guerrier et un mage.
-    inv: personnages->select(p | p.oclIsTypeOf(Pretre))->notEmpty()
-    inv: personnages->select(p | p.oclIsTypeOf(Guerrier))->notEmpty()
-    inv: personnages->select(p | p.oclIsTypeOf(Mage))->notEmpty()
+    inv: personnages->select(p | p.metier.oclIsTypeOf(Pretre))->notEmpty()
+    inv: personnages->select(p | p.metier.oclIsTypeOf(Guerrier))->notEmpty()
+    inv: personnages->select(p | p.metier.oclIsTypeOf(Mage))->notEmpty()
 
     -- estMorte(): Boolean
 context Equipe::estMorte(): Boolean
 
     -- Retourne vrai si et seulement si tous ses membres sont morts.
-    body: personnages->select(vie > 0)->isEmpty()
+    post: result = personnages->select(vie > 0)->isEmpty()
 
 
 context Metier
