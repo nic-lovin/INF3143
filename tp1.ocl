@@ -62,7 +62,7 @@ context Personnage::attaquer(cible: Personnage)
 
     -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
     -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
-    post: let degats = force + if arme <> null then arme.dommages + arme.enchantements->collect(bonus)->sum() else 0 endif in
+    post: let degats = force + arme.dommages + arme.enchantements->collect(bonus)->sum() in
         cible.vie = 0.max(cible@pre.vie - degats)
 
 
@@ -79,7 +79,7 @@ context Arme
 
     -- La méthode getDommages() calcule les dommages infligés par l’arme avec ses enchantements.
 context Arme::getDommages(): Integer
-    
+
     -- dommage + les bonus des enchantements appliqués à sur l’arme
     post: result = dommages + enchantements->collect(bonus)->sum()
 
@@ -130,19 +130,27 @@ context Metier
     -- Mage
     -- Guerrier
     -- Chacune des sous-classes de métier est un singleton.
+    inv: Mage.allInstances()->size() = 1
+    inv: Guerrier.allInstances()->size() = 1
+    inv: Pretre.allInstances()->size() = 1
 
 
 context Pretre
-   inv: self.personnage.arme = null
+    -- Les prêtres ne peuvent pas porter d’armes, ils ne font que soigner.
+   inv: Personnage.allInstances()->select(p | p.metier.oclIsTypeOf(Pretre) and p.arme <> null)->
 
 context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
+    -- Pour pouvoir soigner, le soigneur doit être un prêtre.
+    pre: pretre.metier.oclIsTypeOf(Mage)
+
     -- Un prêtre doit être en vie pour pouvoir soigner.
     pre: pretre.vie > 0
-    
+
     -- Un prêtre ne peut pas se soigner lui-même.
     pre: pretre <> cible
 
     -- Un prêtre ne peut soigner que des membres de son équipe.
+    pre: pretre.equipe.personnages->includes(cible)
 
     -- Un prêtre ne peut pas soigner un personnage déjà mort.
     pre: cible.vie > 0
@@ -165,11 +173,15 @@ context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
 
 context Mage
     -- Les mages ne peuvent pas porter d’armes à deux mains.
+    inv: Personnage.allInstances()->select(p | p.metier.oclIsKindOf(Mage))->collect(arme.aDeuxMains)->excludes(true)
 
 context Mage::lancerSort(mage: Personnage, cible: Personnage, mana: Integer)
-    -- Un mage doit être en viepour lancer un sort.
+   -- Pour lancer un sort, le mage doit être de type Mage.
+    pre: mage.metier.oclIsTypeOf(Mage)
+
+   -- Un mage doit être en vie pour lancer un sort.
     pre: mage.vie > 0
-    
+
     -- mana doit être strictement supérieur à 0.
     pre: mana > 0
 
@@ -186,11 +198,15 @@ context Mage::lancerSort(mage: Personnage, cible: Personnage, mana: Integer)
     post: cible.vie = cible.vie@pre - mana
 
     -- Un mage ne peut pas lancer un sort à un personnage membre de son équipe.
+    pre: mage.equipe.personnages->excludes(cible)
 
 context Guerrier::berserk(guerrier: Personnage, mana: Integer)
-    -- Un guerrier doit être en vie pour attaquer.
+    -- Pour utiliser berserk, le guerrierdoit être de type Guerrier.
+    pre: guerrier.metier.oclIsTypeOf(Guerrier)
+
+-- Un guerrier doit être en vie pour attaquer.
     pre: guerrier.vie > 0
-    
+
     -- Le nombre de points de mana sacrifiés par le guerrier doit être strictement suppérieur à 0.
     pre: mana > 0
 
