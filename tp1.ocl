@@ -1,4 +1,4 @@
--- INF3143 - Modélisation et spécification formelles de logiciels - Hiver 2016
+﻿-- INF3143 - Modélisation et spécification formelles de logiciels - Hiver 2016
 -- Tp1: OCL
 --
 -- Travail remis à:
@@ -132,35 +132,70 @@ context Metier
     -- Chacune des sous-classes de métier est un singleton.
 
 
-context Prêtre
+context Pretre
+   inv: self.personnage.arme = null
 
-    -- Les prêtres ne peuvent pas porter d’armes, ils ne font que soigner.
-    -- soigner(Personnage prêtre, Personnage cible, Integer mana) permet au prêtre de transformer des points de mana en points de vie pour soigner un autre personnage.
-    -- Un prêtre ne peut pas se soigner lui même.
+context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
+    -- Un prêtre doit être en vie pour pouvoir soigner.
+    pre: pretre.vie > 0
+    
+    -- Un prêtre ne peut pas se soigner lui-même.
+    pre: pretre <> cible
+
     -- Un prêtre ne peut soigner que des membres de son équipe.
+
     -- Un prêtre ne peut pas soigner un personnage déjà mort.
+    pre: cible.vie > 0
+
     -- Un prêtre ne peut pas soigner un personnage au delà de 100 points de vie.
+    pre: cible.vie < 100
+
     -- Le nombre de points de mana transformés doit être strictement supérieur à 0.
+    pre: mana > 0
+
     -- Le nombre de points de mana transformés ne peut pas être supérieur au nombre de points de mana du prêtre.
-    -- Grâce au soin, la cible gagne autant de points de vie que de points de mana dépensés par le prêtre.
-    -- Le prêtre perd autant de points de mana que de dépensés pour le soin.
+    pre: pretre.mana >= mana
+
+   -- Grace au soin, la cible gagne autant de points de vie que de points de mana dépensés par le prêtre.
+   post: cible.vie = cible.vie@pre + mana
+
+   -- Le prêtre perd autant de points de mana que de dépensés pour le soin.
+   post: pretre.mana = pretre.mana@pre - mana
 
 
 context Mage
-
     -- Les mages ne peuvent pas porter d’armes à deux mains.
-    -- lancerSort(Personnage mage, Personnage cible, Integer mana) permet au mage d'utiliser ses points de mana pour les transformer en dommages infligés à un adversaire.
-    -- mana doit être strictement suppérieur à 0.
+
+context Mage::lancerSort(mage: Personnage, cible: Personnage, mana: Integer)
+    -- Un mage doit être en viepour lancer un sort.
+    pre: mage.vie > 0
+    
+    -- mana doit être strictement supérieur à 0.
+    pre: mana > 0
+
     -- mana doit être inférieur ou égal à la quantité de mana dont dispose le mage.
-    -- Lancer un sort diminue la mana du mage du nombre de points de mana utilisés.
-    -- Lancer un sort diminue la vie de la cible du nombre de points de mana utilisés.
+    pre: mage.mana >= mana
+
     -- Un mage ne peut pas se lancer un sort à lui même.
+    pre: mage <> cible
+
+    -- Lancer un sort diminue la mana du mage du nombre de points de mana utilisés.
+    post: mage.mana = mage.mana@pre - mana
+
+    -- Lancer un sort diminue la vie de la cible du nombre de points de mana utilisés.
+    post: cible.vie = cible.vie@pre - mana
+
     -- Un mage ne peut pas lancer un sort à un personnage membre de son équipe.
 
+context Guerrier::berserk(guerrier: Personnage, mana: Integer)
+    -- Un guerrier doit être en vie pour attaquer.
+    pre: guerrier.vie > 0
+    
+    -- Le nombre de points de mana sacrifiés par le guerrier doit être strictement suppérieur à 0.
+    pre: mana > 0
 
-context Guerrier
-
-    -- berserk(Personnage guerrier, Integer mana) permet au guerrier de rentrer en mode berserk et d'échanger des points de mana contre des points de force.
-    -- Le nombre de points de mana sacrifiés par le guerrier doit être structement suppérieur à 0.
     -- Le nombre de points de mana sacrifiés par le guerrier doit être inférieur ou égal à la quantité de mana dont il dispose.
-    -- La force du guerrier est augmenté du nombre de points de mana dépensés.
+    pre: guerrier.mana >= mana
+
+    -- La force du guerrier est augmentée du nombre de points de mana dépensés.
+    post: guerrier.force = guerrier.force@pre + mana
