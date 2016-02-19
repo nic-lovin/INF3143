@@ -10,6 +10,7 @@
 
 
 context Personnage
+
     -- Le nom d’un personnage doit faire entre 3 et 12 caractères et ne doit pas correspondre aux chaînes GOD, TEST ou ADMIN (minuscules ou majuscules, quelques soient les majuscules ou minuscules utilisées dans le nom. Ex: "GoD" ne peut être utilisé).
     inv: nom.size() >= 3 and nom.size() <= 12
         and nom.toUpper() <> 'GOD'
@@ -32,17 +33,17 @@ context Personnage
     -- Un personnage ne peut pas être dans deux équipes en même temps.
     inv: Equipe.allInstances()->select(equipe | equipe.personnages->includes(self))->size() <= 1
 
-    -- estMort(): Boolean permet de vérifier si un personnage est mort:
 
-
+-- estMort(): Boolean permet de vérifier si un personnage est mort:
 context Personnage::estMort(): Boolean
+
     -- Retourne vrai si la vie du personnage est égale à 0.
     post: result = (vie = 0)
 
-    -- blesser(Integer dommages) permet de blesser un personnage:
 
-
+-- blesser(Integer dommages) permet de blesser un personnage:
 context Personnage::blesser(dommages: Integer)
+
     -- La méthode prend en paramètre un nombre de points de dommages à retirer (toujours positif).
     pre: dommages > 0
 
@@ -52,6 +53,9 @@ context Personnage::blesser(dommages: Integer)
 
 -- attaquer(Personnage cible) permet à un personnage d’attaquer un autre personnage:
 context Personnage::attaquer(cible: Personnage)
+
+    -- Pour attaquer, le personnage doit être en vie.
+    pre: vie > 0
 
     -- Un personnage ne peut attaquer un autre personnage que s’il dispose d’une arme.
     pre: arme <> null
@@ -65,10 +69,11 @@ context Personnage::attaquer(cible: Personnage)
     -- Une attaque retire attaquant.force + attaquant.arme.getDommages() aux points de vie de la cible personnage.
     -- Il est possible d’attaquer un personnage mort mais cela ne lui retire pas de points de vie.
     post: let degats = force + arme.dommages + arme.enchantements->collect(bonus)->sum() in
-        cible.vie = 0.max(cible@pre.vie - degats)
+        cible.vie = 0.max(cible.vie@pre.vie - degats)
 
 
 context Arme
+
     -- Une arme peut avoir entre 0 et 3 enchantements.
     inv: enchantements->size() >= 0 and enchantements->size() <= 3
 
@@ -81,21 +86,25 @@ context Arme
 
 -- La méthode getDommages() calcule les dommages infligés par l’arme avec ses enchantements.
 context Arme::getDommages(): Integer
+
     -- dommage + les bonus des enchantements appliqués à sur l’arme
     post: result = dommages + enchantements->collect(bonus)->sum()
 
 
 context Enchantement
+
     -- Un enchantement est toujours rattaché à une arme et cette arme doit être équipée par un personnage. Sinon l’enchantement ne devrait pas exister.
     inv: Arme.allInstances()->select(a | a.enchantements->includes(self))->size() = 1
 
 
 -- getBonus(): Integer retourne le bonus de dommage ajouté par l’enchantement.
 context Enchantement::getBonus(): Integer
+
     post: result = bonus
 
 
 context Equipe
+
     -- Une équipe a un nom possédant entre 6 et 12 caractères
     inv: nom.size() >= 6 and nom.size() <= 12
 
@@ -125,6 +134,7 @@ context Equipe::estMorte(): Boolean
 
 
 context Metier
+
     -- Il existe 3 types de métiers:
     -- Prêtre
     -- Mage
@@ -136,11 +146,13 @@ context Metier
 
 
 context Pretre
+
     -- Les prêtres ne peuvent pas porter d’armes, ils ne font que soigner.
    inv: Personnage.allInstances()->select(p | p.metier.oclIsTypeOf(Pretre) and p.arme <> null)->isEmpty()
 
 
 context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
+
     -- Pour pouvoir soigner, le soigneur doit être un prêtre.
     pre: pretre.metier.oclIsTypeOf(Mage)
 
@@ -173,11 +185,14 @@ context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
 
 
 context Mage
+
     -- Les mages ne peuvent pas porter d’armes à deux mains.
     inv: Personnage.allInstances()->select(p | p.metier.oclIsKindOf(Mage))->collect(arme.aDeuxMains)->excludes(true)
 
+
 context Mage::lancerSort(mage: Personnage, cible: Personnage, mana: Integer)
-   -- Pour lancer un sort, le mage doit être de type Mage.
+
+    -- Pour lancer un sort, le mage doit être de type Mage.
     pre: mage.metier.oclIsTypeOf(Mage)
 
    -- Un mage doit être en vie pour lancer un sort.
@@ -203,10 +218,11 @@ context Mage::lancerSort(mage: Personnage, cible: Personnage, mana: Integer)
 
 
 context Guerrier::berserk(guerrier: Personnage, mana: Integer)
+
     -- Pour utiliser berserk, le guerrier doit être de type Guerrier.
     pre: guerrier.metier.oclIsTypeOf(Guerrier)
 
-    -- Un guerrier doit être en vie pour attaquer.
+    -- Un guerrier doit être en vie pour rentrer en mode berserk.
     pre: guerrier.vie > 0
 
     -- Le nombre de points de mana sacrifiés par le guerrier doit être strictement suppérieur à 0.
