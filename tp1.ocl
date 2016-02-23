@@ -170,7 +170,7 @@ context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
     pre: cible.vie > 0
 
     -- Un prêtre ne peut pas soigner un personnage au delà de 100 points de vie.
-    pre: cible.vie < 100
+    post: cible.vie <= 100
 
     -- Le nombre de points de mana transformés doit être strictement supérieur à 0.
     pre: mana > 0
