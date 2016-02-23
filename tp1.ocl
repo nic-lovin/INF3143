@@ -155,7 +155,7 @@ context Pretre
 context Pretre::soigner(pretre: Personnage, cible: Personnage, mana: Integer)
 
     -- Pour pouvoir soigner, le soigneur doit être un prêtre.
-    pre: pretre.metier.oclIsTypeOf(Mage)
+    pre: pretre.metier.oclIsTypeOf(Pretre)
 
     -- Un prêtre doit être en vie pour pouvoir soigner.
     pre: pretre.vie > 0
