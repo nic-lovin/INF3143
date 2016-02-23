@@ -140,9 +140,10 @@ context Metier
     -- Mage
     -- Guerrier
     -- Chacune des sous-classes de métier est un singleton.
-    inv: Mage.allInstances()->size() = 1
-    inv: Guerrier.allInstances()->size() = 1
-    inv: Pretre.allInstances()->size() = 1
+    inv: oclIsTypeOf(Pretre) or oclIsTypeOf(Mage) or oclIsTypeOf(Guerrier)
+    inv: Mage.allInstances()->size() <= 1
+    inv: Guerrier.allInstances()->size() <= 1
+    inv: Pretre.allInstances()->size() <= 1
 
 
 context Pretre
